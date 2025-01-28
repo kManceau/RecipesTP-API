@@ -25,7 +25,7 @@ class RecipeController extends Controller
         $formFields = $request->validate([
             'name' => 'required|string|max:255',
             'type' => 'required|string|max:50',
-            'description' => 'required|text',
+            'description' => 'required|string',
         ]);
         $recipe = new Recipe();
         $recipe->fill($formFields);
@@ -53,7 +53,7 @@ class RecipeController extends Controller
         $formFields = $request->validate([
             'name' => 'string|max:255',
             'type' => 'string|max:50',
-            'description' => 'text',
+            'description' => 'string',
         ]);
         $recipe->fill($formFields);
         $recipe->save();

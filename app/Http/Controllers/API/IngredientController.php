@@ -13,7 +13,7 @@ class IngredientController extends Controller
      */
     public function index()
     {
-        $ingredients = Ingredient::with(['recipe'])->get();
+        $ingredients = Ingredient::with(['recipes'])->get();
         return response()->json($ingredients);
     }
 
@@ -25,7 +25,7 @@ class IngredientController extends Controller
         $formFields = $request->validate([
             'name' => 'required|string|max:100',
             'type' => 'required|string|max:50',
-            'description' => 'required|text',
+            'description' => 'required|string',
         ]);
         $ingredient = new Ingredient();
         $ingredient->fill($formFields);
@@ -41,7 +41,7 @@ class IngredientController extends Controller
      */
     public function show(Ingredient $ingredient)
     {
-        $ingredient->load(['recipe']);
+        $ingredient->load(['recipes']);
         return response()->json($ingredient);
     }
 
@@ -53,7 +53,7 @@ class IngredientController extends Controller
         $formFields = $request->validate([
             'name' => 'string|max:100',
             'type' => 'string|max:50',
-            'description' => 'text',
+            'description' => 'string',
         ]);
         $ingredient->fill($formFields);
         $ingredient->save();

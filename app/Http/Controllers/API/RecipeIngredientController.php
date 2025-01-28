@@ -13,7 +13,7 @@ class RecipeIngredientController extends Controller
     {
         $recipe = Recipe::find($request->get('recipe_id'));
         $ingredient = Ingredient::find($request->get('ingredient_id'));
-        $recipe->ingredients()->attach($ingredient);
+        $recipe->ingredients()->attach($ingredient, ['quantity' => $request->get('quantity')]);
         return response()->json(['status' => 'Ingredient added to recipe successfully']);
     }
 }

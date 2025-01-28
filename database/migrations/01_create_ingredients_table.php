@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('name', 100);
             $table->string('type', 50);
             $table->text('description');
-            $table->string('photo', 255);
+            $table->string('photo', 255)->nullable();
         });
     }
 
