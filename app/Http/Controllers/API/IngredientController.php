@@ -13,7 +13,12 @@ class IngredientController extends Controller
      */
     public function index()
     {
-        $ingredients = Ingredient::with(['recipes'])->get();
+        $limit = $_GET['limit'] ?? null;
+        if($limit){
+            $ingredients = Ingredient::with(['recipes'])->take($limit)->orderBy('id', 'DESC')->get();
+        }else {
+            $ingredients = Ingredient::with(['recipes'])->get();
+        }
         return response()->json($ingredients);
     }
 
