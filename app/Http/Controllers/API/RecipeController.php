@@ -13,7 +13,12 @@ class RecipeController extends Controller
      */
     public function index()
     {
-        $recipes = Recipe::with('ingredients')->get();
+        $limit = $_GET['limit'] ?? null;
+        if($limit){
+            $recipes = Recipe::with('ingredients')->take($limit)->orderBy('id', "DESC")->get();
+        } else{
+            $recipes = Recipe::with('ingredients')->get();
+        }
         return response()->json($recipes);
     }
 
