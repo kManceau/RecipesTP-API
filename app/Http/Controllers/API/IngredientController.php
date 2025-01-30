@@ -4,7 +4,9 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Models\Ingredient;
+use App\Services\ImageService;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class IngredientController extends Controller
 {
@@ -25,20 +27,33 @@ class IngredientController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(Request $request, ImageService $imageService)
     {
-        $formFields = $request->validate([
-            'name' => 'required|string|max:100',
-            'type' => 'required|string|max:50',
-            'description' => 'required|string',
-        ]);
-        $ingredient = new Ingredient();
-        $ingredient->fill($formFields);
-        $ingredient->save();
-        return response()->json([
-            'status' => 'Ingredient created successfully',
-            $ingredient
-        ]);
+        try {
+            $request->validate([
+                'name' => 'required|string|max:100',
+                'type' => 'required|string|max:50',
+                'description' => 'required|string',
+            ]);
+
+            $photoName = "";
+            if($request->hasFile("photo")){
+                $photoName = $request->get('name');
+                $imageService->uploadImages($request->file("photo"), $photoName, "ingredients");
+            }
+            $ingredient = Ingredient::create(array_merge($request->all(), ['photo' => $photoName]));
+            $ingredient->save();
+
+            return response()->json([
+                'status' => 'Ingrédient créé avec succès',
+                'ingredient' => $ingredient
+            ]);
+
+        } catch (ValidationException $e) {
+            return response()->json(['error' => $e->errors()], 422);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Impossible de créer l\'ingrédient'], 422);
+        }
     }
 
     /**
@@ -71,8 +86,9 @@ class IngredientController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Ingredient $ingredient)
+    public function destroy(Ingredient $ingredient, ImageService $imageService)
     {
+        $imageService->deleteImages($ingredient->photo, "ingredients");
         $ingredient->delete();
         return response()->json(['status' => 'Ingredient deleted successfully']);
     }

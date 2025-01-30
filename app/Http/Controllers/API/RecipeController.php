@@ -4,7 +4,9 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Models\Recipe;
+use App\Services\ImageService;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class RecipeController extends Controller
 {
@@ -25,20 +27,32 @@ class RecipeController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(Request $request, ImageService $imageService)
     {
-        $formFields = $request->validate([
-            'name' => 'required|string|max:255',
-            'type' => 'required|string|max:50',
-            'description' => 'required|string',
-        ]);
-        $recipe = new Recipe();
-        $recipe->fill($formFields);
-        $recipe->save();
-        return response()->json([
-            'status' => 'Recipe created successfully',
-            $recipe
-        ]);
+        try {
+            $request->validate([
+                'name' => 'required|string|max:100',
+                'type' => 'required|string|max:50',
+                'description' => 'required|string',
+            ]);
+            $photoName = "";
+            if($request->hasFile('photo')){
+                $photoName = $request->get('name');
+                $imageService->uploadImages($request->file('photo'), $photoName, 'recipes');
+            }
+            $recipe = Recipe::create(array_merge($request->all(), ['photo' => $photoName]));
+            $recipe->save();
+
+            return response()->json([
+                'status' => 'Recette créée avec succès',
+                'recipe' => $recipe
+            ]);
+
+        } catch (ValidationException $e) {
+            return response()->json(['error' => $e->errors()], 422);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Impossible de créer la recette'], 422);
+        }
     }
 
     /**
@@ -71,8 +85,9 @@ class RecipeController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Recipe $recipe)
+    public function destroy(Recipe $recipe, ImageService $imageService)
     {
+        $imageService->deleteImages($recipe->photo, 'recipes');
         $recipe->delete();
         return response()->json(['status' => 'Recipe deleted successfully']);
     }

@@ -13,6 +13,7 @@ class Ingredient extends Model
         'name',
         'type',
         'description',
+        'photo',
     ];
 
     public function recipes()
